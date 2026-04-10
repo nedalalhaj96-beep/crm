@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM UNICARS</title>
+
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+--primary: #00A86B;
+--bg: #F5F5F5;
+--text: #000;
+--border: #CCC;
+}
+
+body { font-family: Arial; background: var(--bg); padding: 20px; }
+.container { max-width: 900px; margin: auto; }
+
+h1 { color: var(--primary); margin-bottom: 10px; }
+
+.card {
+background: #fff;
+border: 1px solid var(--border);
+padding: 15px;
+margin-bottom: 15px;
+}
+
+button {
+padding: 8px 14px;
+border: none;
+cursor: pointer;
+background: var(--primary);
+color: white;
+margin-right: 5px;
+}
+
+input, textarea {
+width: 100%;
+padding: 10px;
+border: 1px solid var(--border);
+margin-top: 10px;
+}
+
+table {
+width: 100%;
+margin-top: 10px;
+border-collapse: collapse;
+}
+
+th, td {
+border-bottom: 1px solid var(--border);
+padding: 8px;
+text-align: left;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+<h1>CRM UNICARS</h1>
+
+<div class="card">
+<input type="file" id="fileInput">
+</div>
+
+<div class="card" id="messageSection" style="display:none;">
+<textarea id="messageInput" placeholder="Message... use {name} {phone} {index}"></textarea>
+</div>
+
+<div class="card" id="listSection" style="display:none;">
+<button onclick="startSending()">Start Sending</button>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Name</th>
+<th>Phone</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody id="tableBody"></tbody>
+</table>
+</div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
