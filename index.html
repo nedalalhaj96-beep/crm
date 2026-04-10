@@ -3,485 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>CRM UNICARS · WhatsApp</title>
-    <!-- Font Awesome Icons -->
+    <title>CRM UNICARS · Auto Send</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Papa Parse & SheetJS -->
     <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --primary: #0a7c5c;
-            --primary-light: #e6f4f0;
-            --primary-hover: #066347;
-            --secondary: #ffffff;
-            --bg: #f8fafc;
-            --text: #1e293b;
-            --border: #e2e8f0;
-            --danger: #dc2626;
-            --sent-bg: #fee2e2;
-            --sent-border: #fecaca;
-            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
-            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
-        }
-
-        body {
-            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.5;
-            padding: 20px;
-            min-height: 100vh;
-        }
-
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-        }
-
-        /* Header */
-        header {
-            text-align: center;
-            margin-bottom: 28px;
-        }
-
-        header h1 {
-            color: var(--primary);
-            font-size: 2.2rem;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        header h1 i {
-            font-size: 2rem;
-            opacity: 0.9;
-        }
-
-        header p {
-            color: #64748b;
-            font-size: 1rem;
-            margin-top: 6px;
-        }
-
-        /* Cards */
-        .card {
-            background: var(--secondary);
-            border-radius: 20px;
-            box-shadow: var(--shadow);
-            padding: 24px;
-            margin-bottom: 20px;
-            border: 1px solid var(--border);
-            transition: box-shadow 0.2s;
-        }
-
-        .card:hover {
-            box-shadow: var(--shadow-lg);
-        }
-
-        .card h2 {
-            font-size: 1.5rem;
-            margin-bottom: 18px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #0f172a;
-        }
-
-        .card h2 i {
-            color: var(--primary);
-            font-size: 1.3rem;
-            width: 1.8rem;
-        }
-
-        /* Upload area */
-        .file-upload {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-
-        input[type="file"] {
-            display: none;
-        }
-
-        .btn {
-            padding: 10px 22px;
-            border: none;
-            border-radius: 60px;
-            cursor: pointer;
-            font-size: 0.95rem;
-            font-weight: 500;
-            transition: all 0.15s;
-            white-space: nowrap;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-            border: 1px solid transparent;
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: var(--primary-hover);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(10, 124, 92, 0.2);
-        }
-
-        .btn-secondary {
-            background: white;
-            color: var(--text);
-            border: 1px solid var(--border);
-        }
-
-        .btn-secondary:hover {
-            background: #f1f5f9;
-            border-color: #cbd5e1;
-        }
-
-        .btn-outline {
-            background: transparent;
-            border: 1px solid var(--border);
-            color: #334155;
-        }
-
-        .btn-outline:hover {
-            background: #f8fafc;
-        }
-
-        .btn-danger {
-            background: var(--danger);
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #b91c1c;
-        }
-
-        .btn-sm {
-            padding: 6px 14px;
-            font-size: 0.85rem;
-        }
-
-        .file-name {
-            color: #475569;
-            font-size: 0.95rem;
-            background: #f1f5f9;
-            padding: 6px 14px;
-            border-radius: 40px;
-        }
-
-        .requirements {
-            margin-top: 12px;
-            color: #64748b;
-            font-size: 0.9rem;
-        }
-
-        .requirements i {
-            margin-right: 4px;
-            color: var(--primary);
-        }
-
-        /* Textarea */
-        textarea {
-            width: 100%;
-            padding: 14px 16px;
-            border: 1.5px solid var(--border);
-            border-radius: 16px;
-            font-family: inherit;
-            font-size: 0.95rem;
-            resize: vertical;
-            background: #fafcff;
-            transition: border 0.15s;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(10, 124, 92, 0.1);
-        }
-
-        /* Action Bar */
-        .action-bar {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .stats {
-            margin-left: auto;
-            font-size: 0.95rem;
-            background: #f1f5f9;
-            padding: 6px 16px;
-            border-radius: 40px;
-            color: #334155;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .badge {
-            background: var(--primary);
-            color: white;
-            padding: 2px 10px;
-            border-radius: 40px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            margin-left: 8px;
-        }
-
-        /* Table */
-        .table-container {
-            overflow-x: auto;
-            max-height: 500px;
-            overflow-y: auto;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            background: white;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.9rem;
-        }
-
-        th, td {
-            text-align: left;
-            padding: 14px 16px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        th {
-            background: #f8fafc;
-            font-weight: 600;
-            position: sticky;
-            top: 0;
-            z-index: 2;
-            color: #0f172a;
-            white-space: nowrap;
-        }
-
-        tr {
-            transition: background 0.1s;
-        }
-
-        tr:hover {
-            background: #f9f9fb;
-        }
-
-        /* Sent row style */
-        tr.sent-row {
-            background: var(--sent-bg) !important;
-            border-left: 4px solid var(--danger);
-        }
-
-        tr.sent-row td:first-child {
-            border-left: 4px solid var(--danger);
-        }
-
-        tr.sent-row:hover {
-            background: #fdd8d8 !important;
-        }
-
-        td button {
-            padding: 6px 14px;
-            font-size: 0.8rem;
-            border-radius: 40px;
-        }
-
-        .status-badge {
-            display: inline-block;
-            background: #e2e8f0;
-            padding: 4px 10px;
-            border-radius: 40px;
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
-
-        .status-badge.sent {
-            background: #fee2e2;
-            color: #b91c1c;
-        }
-
-        /* Modal */
-        .modal {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.4);
-            backdrop-filter: blur(4px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 28px 30px;
-            border-radius: 28px;
-            min-width: 360px;
-            max-width: 90%;
-            text-align: center;
-            box-shadow: 0 20px 30px -8px rgba(0,0,0,0.15);
-        }
-
-        .modal-content h3 {
-            font-size: 1.5rem;
-            margin-bottom: 8px;
-            color: #0f172a;
-        }
-
-        .modal-content p {
-            margin-bottom: 24px;
-            font-size: 1.1rem;
-            background: #f8fafc;
-            padding: 12px 16px;
-            border-radius: 60px;
-            color: #1e293b;
-            word-break: break-word;
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .delay-indicator {
-            font-size: 0.9rem;
-            margin-top: 15px;
-            color: #64748b;
-        }
-
-        small {
-            display: block;
-            margin-top: 8px;
-            color: #64748b;
-        }
-
-        @media (max-width: 640px) {
-            body { padding: 12px; }
-            header h1 { font-size: 1.8rem; }
-            .card { padding: 18px; }
-            th, td { padding: 12px 8px; }
-            .action-bar { flex-direction: column; align-items: stretch; }
-            .stats { margin-left: 0; justify-content: center; }
-        }
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{--primary:#0a7c5c;--primary-hover:#066347;--secondary:#fff;--bg:#f8fafc;--text:#1e293b;--border:#e2e8f0;--danger:#dc2626;--sent-bg:#fee2e2}
+        body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);padding:20px}
+        .container{max-width:1200px;margin:0 auto}
+        header{text-align:center;margin-bottom:28px}
+        header h1{color:var(--primary);font-size:2.2rem;display:flex;align-items:center;justify-content:center;gap:10px}
+        .card{background:var(--secondary);border-radius:20px;box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);padding:24px;margin-bottom:20px;border:1px solid var(--border)}
+        .btn{padding:10px 22px;border-radius:60px;border:none;cursor:pointer;font-size:0.95rem;font-weight:500;display:inline-flex;align-items:center;gap:8px;background:white;border:1px solid var(--border);transition:all 0.15s}
+        .btn-primary{background:var(--primary);color:white;border:none}
+        .btn-primary:hover{background:var(--primary-hover)}
+        .btn-danger{background:var(--danger);color:white;border:none}
+        .file-upload{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+        input[type="file"]{display:none}
+        .file-name{color:#475569;background:#f1f5f9;padding:6px 14px;border-radius:40px}
+        textarea{width:100%;padding:14px;border:1.5px solid var(--border);border-radius:16px;font-family:inherit}
+        .action-bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+        .stats{margin-left:auto;background:#f1f5f9;padding:6px 16px;border-radius:40px}
+        .badge{background:var(--primary);color:white;padding:2px 10px;border-radius:40px;margin-left:8px}
+        .table-container{max-height:500px;overflow:auto;border-radius:16px;border:1px solid var(--border)}
+        table{width:100%;border-collapse:collapse}
+        th,td{padding:14px 16px;border-bottom:1px solid var(--border)}
+        th{background:#f8fafc;position:sticky;top:0}
+        tr.sent-row{background:var(--sent-bg)!important}
+        .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:1000}
+        .modal-content{background:white;padding:28px;border-radius:28px;min-width:360px}
+        .delay-control{margin:15px 0;display:flex;align-items:center;gap:10px;justify-content:center}
+        .delay-control input{width:70px;padding:8px;border:1px solid var(--border);border-radius:8px;text-align:center}
     </style>
 </head>
 <body>
 <div class="container">
     <header>
-        <h1>
-            <i class="fas fa-car"></i> 
-            CRM UNICARS
-            <i class="fab fa-whatsapp" style="color:#25D366;"></i>
-        </h1>
-        <p>Upload · Clean · Send WhatsApp · Track</p>
+        <h1><i class="fas fa-car"></i> CRM UNICARS <i class="fab fa-whatsapp" style="color:#25D366;"></i></h1>
+        <p>Upload · Clean · Auto Send · Track</p>
     </header>
 
-    <!-- Import Section -->
     <section class="card">
         <h2><i class="fas fa-cloud-upload-alt"></i> 1. Import Data</h2>
         <div class="file-upload">
-            <input type="file" id="fileInput" accept=".xlsx,.csv,.xls" />
+            <input type="file" id="fileInput" accept=".xlsx,.csv" />
             <label for="fileInput" class="btn btn-primary"><i class="fas fa-folder-open"></i> Choose File</label>
             <span id="fileName" class="file-name"><i class="far fa-file"></i> No file chosen</span>
         </div>
-        <div class="requirements">
-            <i class="fas fa-info-circle"></i> Required columns: <strong>Name</strong> (or similar) and <strong>Phone</strong> (with country code).<br>
-            <i class="fas fa-check-circle" style="color:var(--primary);"></i> Supports .xlsx, .csv. Numbers like 971501234567 or +971501234567 are fine.
-        </div>
+        <small><i class="fas fa-info-circle"></i> Numbers like 971501234567 or +971501234567 are fine.</small>
     </section>
 
-    <!-- Message Section (hidden until file loaded) -->
     <section class="card" id="message-section" style="display:none;">
-        <h2><i class="fas fa-pen"></i> 2. Compose Message</h2>
+        <h2><i class="fas fa-pen"></i> 2. Message Template</h2>
         <textarea id="messageInput" rows="3" placeholder="Hello {name}, this is UNICARS..."></textarea>
-        <small><i class="far fa-lightbulb"></i> Tip: Use <code>{name}</code> to insert customer's name automatically.</small>
+        <small>Use <code>{name}</code> for customer name.</small>
     </section>
 
-    <!-- Actions & Stats -->
     <section class="card" id="actions-section" style="display:none;">
         <div class="action-bar">
-            <button id="exportBtn" class="btn btn-secondary"><i class="fas fa-download"></i> Export CSV</button>
-            <button id="resetSentBtn" class="btn btn-outline"><i class="fas fa-undo-alt"></i> Reset Sent</button>
-            <button id="sendAllBtn" class="btn btn-primary"><i class="fab fa-whatsapp"></i> Send All</button>
-            <span id="stats" class="stats"><i class="fas fa-users"></i> <span id="statsText">0 contacts</span></span>
+            <button id="exportBtn" class="btn"><i class="fas fa-download"></i> Export CSV</button>
+            <button id="resetSentBtn" class="btn"><i class="fas fa-undo-alt"></i> Reset</button>
+            <button id="autoSendBtn" class="btn btn-primary"><i class="fas fa-play"></i> Auto Send All</button>
+            <button id="stopAutoBtn" class="btn btn-danger" style="display:none;"><i class="fas fa-stop"></i> Stop Auto</button>
+            <span class="stats" id="statsText">0 contacts</span>
+        </div>
+        <div class="delay-control">
+            <label><i class="fas fa-clock"></i> Delay (seconds):</label>
+            <input type="number" id="delaySeconds" min="1" max="10" value="3" step="0.5">
+            <small>(Time between opening tabs)</small>
         </div>
     </section>
 
-    <!-- Customer List -->
     <section class="card" id="list-section" style="display:none;">
-        <h2><i class="fas fa-list-ul"></i> Customer List 
-            <span id="countBadge" class="badge">0</span>
-        </h2>
+        <h2><i class="fas fa-list-ul"></i> Customer List <span id="countBadge" class="badge">0</span></h2>
         <div class="table-container">
             <table id="customerTable">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Name</th>
-                        <th>Phone</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
+                <thead><tr><th>#</th><th>Name</th><th>Phone</th><th>Status</th><th>Action</th></tr></thead>
                 <tbody id="customerTableBody"></tbody>
             </table>
         </div>
     </section>
-
-    <!-- Sending Modal (improved) -->
-    <div id="sendModal" class="modal">
-        <div class="modal-content">
-            <h3><i class="fab fa-whatsapp" style="color:#25D366;"></i> Sending</h3>
-            <p id="currentCustomerDisplay">Loading...</p>
-            <div style="margin-bottom: 20px;">
-                <span class="status-badge" id="progressIndicator">1 / 10</span>
-            </div>
-            <div class="modal-actions">
-                <button id="openChatBtn" class="btn btn-primary"><i class="fab fa-whatsapp"></i> Open Chat</button>
-                <button id="copyLinkBtn" class="btn btn-secondary"><i class="fas fa-copy"></i> Copy Link</button>
-                <button id="markSentBtn" class="btn btn-outline"><i class="fas fa-check"></i> Mark Sent</button>
-                <button id="nextBtn" class="btn btn-secondary">Next <i class="fas fa-arrow-right"></i></button>
-                <button id="stopBtn" class="btn btn-danger"><i class="fas fa-stop"></i> Stop</button>
-            </div>
-            <div class="delay-indicator" id="delayMessage"></div>
-        </div>
-    </div>
 </div>
 
 <script>
     (function(){
-        "use strict";
-
-        // ---------- STATE ----------
-        let customers = [];                 // { name, phone, sent (bool), original }
-        let currentSendIndex = 0;
-        let isSending = false;
+        let customers = [];
         let autoTimer = null;
+        let autoIndex = 0;
+        let isAutoSending = false;
 
-        // DOM elements
         const fileInput = document.getElementById('fileInput');
         const fileName = document.getElementById('fileName');
         const messageSection = document.getElementById('message-section');
@@ -491,382 +102,181 @@
         const customerTableBody = document.getElementById('customerTableBody');
         const countBadge = document.getElementById('countBadge');
         const statsText = document.getElementById('statsText');
-        const sendModal = document.getElementById('sendModal');
-        const currentCustomerDisplay = document.getElementById('currentCustomerDisplay');
-        const progressIndicator = document.getElementById('progressIndicator');
-        const delayMessage = document.getElementById('delayMessage');
+        const autoSendBtn = document.getElementById('autoSendBtn');
+        const stopAutoBtn = document.getElementById('stopAutoBtn');
+        const delaySeconds = document.getElementById('delaySeconds');
 
-        // Buttons
-        const exportBtn = document.getElementById('exportBtn');
-        const resetSentBtn = document.getElementById('resetSentBtn');
-        const sendAllBtn = document.getElementById('sendAllBtn');
-        const openChatBtn = document.getElementById('openChatBtn');
-        const copyLinkBtn = document.getElementById('copyLinkBtn');
-        const markSentBtn = document.getElementById('markSentBtn');
-        const nextBtn = document.getElementById('nextBtn');
-        const stopBtn = document.getElementById('stopBtn');
+        function escapeHtml(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML;}
+        function normalizePhone(p){let c=String(p).replace(/[^\d+]/g,'');return c.startsWith('+')?'+'+c.replace(/\D/g,''):c.replace(/\D/g,'');}
+        function findColumn(row,names){const keys=Object.keys(row);for(let n of names){const e=keys.find(k=>k.trim().toLowerCase()===n.toLowerCase());if(e&&row[e])return row[e];}for(let n of names){const p=keys.find(k=>k.toLowerCase().includes(n.toLowerCase()));if(p&&row[p])return row[p];}return null;}
 
-        // ---------- UTILS ----------
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text || '';
-            return div.innerHTML;
+        function processData(raw){
+            const seen=new Set(); const out=[]; let cnt=1;
+            for(let r of raw){
+                const name=findColumn(r,['name','nome','customer','client','full name','contact','اسم']);
+                const phone=findColumn(r,['phone','mobile','cell','telefone','celular','whatsapp','contact number','رقم']);
+                if(!phone) continue;
+                const clean=normalizePhone(phone);
+                if(!clean||clean.length<5||seen.has(clean)) continue;
+                seen.add(clean);
+                let finalName=name?String(name).trim():`Customer ${cnt++}`;
+                out.push({name:finalName,phone:clean,sent:false});
+            }
+            return out;
         }
 
-        // Normalize phone: keep digits, handle leading zeros, optional +
-        function normalizePhone(phone) {
-            if (!phone && phone !== 0) return '';
-            let cleaned = String(phone).replace(/[^\d+]/g, ''); // keep digits and +
-            // If starts with +, keep it; otherwise assume digits only
-            if (cleaned.startsWith('+')) {
-                cleaned = '+' + cleaned.replace(/\D/g, '');
-            } else {
-                cleaned = cleaned.replace(/\D/g, '');
-            }
-            // Remove leading zeros after country code? Keep as is, WhatsApp handles.
-            return cleaned;
-        }
-
-        // Find column by possible names (case-insensitive, partial match)
-        function findColumn(row, possibleNames) {
-            const keys = Object.keys(row);
-            for (let name of possibleNames) {
-                const exact = keys.find(k => k.trim().toLowerCase() === name.toLowerCase());
-                if (exact && row[exact]) return row[exact];
-            }
-            for (let name of possibleNames) {
-                const partial = keys.find(k => k.toLowerCase().includes(name.toLowerCase()));
-                if (partial && row[partial]) return row[partial];
-            }
-            return null;
-        }
-
-        // Process raw data
-        function processData(rawData) {
-            const seen = new Set();
-            const processed = [];
-            let autoNameCounter = 1;
-
-            for (const row of rawData) {
-                const nameRaw = findColumn(row, ['name', 'nome', 'customer', 'client', 'full name', 'contact', 'اسم', 'الاسم']);
-                const phoneRaw = findColumn(row, ['phone', 'mobile', 'cell', 'telefone', 'celular', 'whatsapp', 'contact number', 'رقم', 'الهاتف']);
-
-                if (!phoneRaw) continue;
-
-                const cleanPhone = normalizePhone(phoneRaw);
-                if (!cleanPhone || cleanPhone.length < 5 || seen.has(cleanPhone)) continue;
-                seen.add(cleanPhone);
-
-                let finalName = nameRaw ? String(nameRaw).trim() : '';
-                if (!finalName) finalName = `Customer ${autoNameCounter++}`;
-
-                processed.push({
-                    name: finalName,
-                    phone: cleanPhone,
-                    sent: false,
-                    original: row
+        async function parseFile(file){
+            if(file.name.endsWith('.csv')){
+                return new Promise((res,rej)=>Papa.parse(file,{header:true,skipEmptyLines:true,complete:r=>res(r.data),error:rej}));
+            }else{
+                return new Promise((res,rej)=>{
+                    const reader=new FileReader();
+                    reader.onload=e=>{
+                        const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+                        res(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]));
+                    };
+                    reader.onerror=rej;
+                    reader.readAsArrayBuffer(file);
                 });
             }
-            return processed;
         }
 
-        // Parse CSV
-        function parseCSV(file) {
-            return new Promise((resolve, reject) => {
-                Papa.parse(file, {
-                    header: true,
-                    skipEmptyLines: true,
-                    complete: (results) => resolve(results.data),
-                    error: (err) => reject(err)
-                });
+        function renderTable(){
+            const frag=document.createDocumentFragment();
+            customers.forEach((c,i)=>{
+                const tr=document.createElement('tr');
+                if(c.sent) tr.classList.add('sent-row');
+                tr.innerHTML=`<td>${i+1}</td><td>${escapeHtml(c.name)}</td><td>${c.phone}</td><td><span class="badge" style="background:${c.sent?'var(--danger)':'#94a3b8'}">${c.sent?'✓ Sent':'Pending'}</span></td><td><button class="btn btn-primary btn-sm" onclick="sendSingle(${i})"><i class="fab fa-whatsapp"></i> Send</button></td>`;
+                frag.appendChild(tr);
             });
+            customerTableBody.innerHTML='';
+            customerTableBody.appendChild(frag);
+            countBadge.textContent=customers.length;
+            updateStats();
         }
 
-        // Parse Excel
-        function parseExcel(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    try {
-                        const data = new Uint8Array(e.target.result);
-                        const workbook = XLSX.read(data, { type: 'array' });
-                        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                        const jsonData = XLSX.utils.sheet_to_json(firstSheet);
-                        resolve(jsonData);
-                    } catch (err) {
-                        reject(err);
-                    }
-                };
-                reader.onerror = () => reject(new Error('Failed to read file'));
-                reader.readAsArrayBuffer(file);
-            });
+        function updateStats(){
+            const sent=customers.filter(c=>c.sent).length;
+            statsText.textContent=`${customers.length} contacts (${sent} sent)`;
         }
 
-        // ---------- RENDER TABLE ----------
-        function renderTable() {
-            const fragment = document.createDocumentFragment();
-            customers.forEach((cust, idx) => {
-                const tr = document.createElement('tr');
-                if (cust.sent) tr.classList.add('sent-row');
-                tr.innerHTML = `
-                    <td>${idx+1}</td>
-                    <td>${escapeHtml(cust.name)}</td>
-                    <td>${cust.phone}</td>
-                    <td><span class="status-badge ${cust.sent ? 'sent' : ''}">${cust.sent ? '✓ Sent' : 'Pending'}</span></td>
-                    <td>
-                        <button class="btn btn-primary btn-sm" data-index="${idx}" onclick="window.sendSingle(${idx})">
-                            <i class="fab fa-whatsapp"></i> Send
-                        </button>
-                    </td>
-                `;
-                fragment.appendChild(tr);
-            });
-            customerTableBody.innerHTML = '';
-            customerTableBody.appendChild(fragment);
-            countBadge.textContent = customers.length;
-            const sentCount = customers.filter(c => c.sent).length;
-            statsText.textContent = `${customers.length} contacts (${sentCount} sent)`;
+        function saveStorage(){
+            localStorage.setItem('unicars_customers_v3',JSON.stringify(customers));
+            localStorage.setItem('unicars_msg_v3',messageInput.value);
         }
 
-        // Update stats only
-        function updateStats() {
-            const sentCount = customers.filter(c => c.sent).length;
-            statsText.textContent = `${customers.length} contacts (${sentCount} sent)`;
+        function loadStorage(){
+            const saved=localStorage.getItem('unicars_customers_v3');
+            const msg=localStorage.getItem('unicars_msg_v3');
+            if(saved){customers=JSON.parse(saved);if(msg)messageInput.value=msg;renderTable();showSections();}
         }
 
-        // Show sections after file load
-        function showSections() {
-            messageSection.style.display = 'block';
-            actionsSection.style.display = 'block';
-            listSection.style.display = 'block';
+        function showSections(){
+            messageSection.style.display='block';
+            actionsSection.style.display='block';
+            listSection.style.display='block';
         }
 
-        // Save/Load from localStorage
-        function saveToStorage() {
-            try {
-                localStorage.setItem('unicars_customers_v2', JSON.stringify(customers));
-                localStorage.setItem('unicars_message_v2', messageInput.value);
-            } catch(e) {}
+        function buildMsg(cust){
+            return (messageInput.value||'Hello {name},').replace(/\{name\}/g,cust.name);
         }
 
-        function loadFromStorage() {
-            try {
-                const saved = localStorage.getItem('unicars_customers_v2');
-                const savedMsg = localStorage.getItem('unicars_message_v2');
-                if (saved) {
-                    customers = JSON.parse(saved);
-                    if (savedMsg) messageInput.value = savedMsg;
-                    renderTable();
-                    showSections();
-                    updateStats();
-                }
-            } catch(e) {}
+        function getLink(phone,msg){
+            return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
         }
 
-        // Build WhatsApp message
-        function buildMessage(customer) {
-            let msg = messageInput.value || 'Hello {name},';
-            return msg.replace(/\{name\}/g, customer.name);
-        }
-
-        // Generate wa.me link
-        function getWhatsAppLink(phone, message) {
-            // Remove + if present? wa.me accepts with or without + 
-            return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-        }
-
-        // Mark a specific index as sent
-        function markSent(index) {
-            if (index >= 0 && index < customers.length) {
-                customers[index].sent = true;
-                renderTable();
-                saveToStorage();
-            }
-        }
-
-        // Reset all sent status
-        function resetAllSent() {
-            customers.forEach(c => c.sent = false);
+        window.sendSingle = function(idx){
+            const c=customers[idx];
+            window.open(getLink(c.phone,buildMsg(c)),'_blank');
+            c.sent=true;
             renderTable();
-            saveToStorage();
-        }
-
-        // ---------- SINGLE SEND ----------
-        window.sendSingle = function(index) {
-            const cust = customers[index];
-            const message = buildMessage(cust);
-            const url = getWhatsAppLink(cust.phone, message);
-            window.open(url, '_blank');
-            // Mark as sent
-            markSent(index);
+            saveStorage();
         };
 
-        // ---------- SEND MODAL LOGIC ----------
-        function openSendModal() {
-            if (customers.length === 0) return;
-            currentSendIndex = 0;
-            isSending = true;
-            updateModalForIndex();
-            sendModal.style.display = 'flex';
-            delayMessage.textContent = '';
-        }
-
-        function closeSendModal() {
-            sendModal.style.display = 'none';
-            isSending = false;
-            if (autoTimer) {
-                clearTimeout(autoTimer);
-                autoTimer = null;
-            }
-        }
-
-        function updateModalForIndex() {
-            const cust = customers[currentSendIndex];
-            currentCustomerDisplay.textContent = `${cust.name} · ${cust.phone}`;
-            progressIndicator.textContent = `${currentSendIndex+1} / ${customers.length}`;
-        }
-
-        function getCurrentLink() {
-            const cust = customers[currentSendIndex];
-            return getWhatsAppLink(cust.phone, buildMessage(cust));
-        }
-
-        function openCurrentChat() {
-            const url = getCurrentLink();
-            window.open(url, '_blank');
-        }
-
-        function copyCurrentLink() {
-            const url = getCurrentLink();
-            navigator.clipboard?.writeText(url).then(() => {
-                alert('Link copied to clipboard');
-            }).catch(() => {
-                prompt('Copy manually:', url);
-            });
-        }
-
-        function moveToNext() {
-            if (!isSending) return;
-            currentSendIndex++;
-            if (currentSendIndex >= customers.length) {
-                closeSendModal();
-                alert('All contacts processed!');
+        // Auto-send logic
+        function autoSendNext(){
+            if(!isAutoSending) return;
+            if(autoTimer) clearTimeout(autoTimer);
+            
+            if(autoIndex >= customers.length){
+                stopAutoSend();
+                alert('✅ All contacts processed!');
                 return;
             }
-            updateModalForIndex();
-            // Auto-open if auto timer was set? We'll keep manual
+
+            const cust = customers[autoIndex];
+            const link = getLink(cust.phone, buildMsg(cust));
+            window.open(link, '_blank');
+            
+            // Mark as sent
+            cust.sent = true;
+            renderTable();
+            saveStorage();
+            
+            autoIndex++;
+            
+            if(autoIndex < customers.length && isAutoSending){
+                const delay = parseFloat(delaySeconds.value) * 1000;
+                autoTimer = setTimeout(()=> autoSendNext(), delay);
+            } else if(autoIndex >= customers.length){
+                stopAutoSend();
+                alert('✅ All contacts processed!');
+            }
         }
 
-        // ---------- EVENT LISTENERS ----------
-        fileInput.addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            fileName.innerHTML = `<i class="far fa-file"></i> ${file.name}`;
-            try {
-                let rawData = [];
-                if (file.name.endsWith('.csv')) {
-                    rawData = await parseCSV(file);
-                } else {
-                    rawData = await parseExcel(file);
-                }
-                customers = processData(rawData);
-                // Load sent status from previous? No, fresh import clears sent.
-                saveToStorage();
+        function startAutoSend(){
+            if(customers.length===0) return;
+            // Find first unsent? Or start from 0. We'll start from first unsent.
+            autoIndex = customers.findIndex(c=>!c.sent);
+            if(autoIndex === -1){
+                alert('All contacts already sent!');
+                return;
+            }
+            isAutoSending = true;
+            autoSendBtn.style.display = 'none';
+            stopAutoBtn.style.display = 'inline-flex';
+            autoSendNext();
+        }
+
+        function stopAutoSend(){
+            isAutoSending = false;
+            if(autoTimer){ clearTimeout(autoTimer); autoTimer=null; }
+            autoSendBtn.style.display = 'inline-flex';
+            stopAutoBtn.style.display = 'none';
+        }
+
+        // Event listeners
+        fileInput.addEventListener('change', async e=>{
+            const f=e.target.files[0]; if(!f)return;
+            fileName.innerHTML=`<i class="far fa-file"></i> ${f.name}`;
+            try{
+                const raw = await parseFile(f);
+                customers = processData(raw);
+                saveStorage();
                 renderTable();
                 showSections();
-                updateStats();
-            } catch (err) {
-                alert('Error reading file: ' + err.message);
-            }
+            }catch(err){alert('Error: '+err.message);}
         });
 
-        // Export
-        exportBtn.addEventListener('click', () => {
-            if (customers.length === 0) return;
-            const csv = Papa.unparse(customers.map(c => ({
-                Name: c.name,
-                Phone: c.phone,
-                Sent: c.sent ? 'Yes' : 'No'
-            })));
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `unicars_export_${new Date().toISOString().slice(0,10)}.csv`;
+        document.getElementById('exportBtn').addEventListener('click',()=>{
+            if(!customers.length)return;
+            const csv=Papa.unparse(customers.map(c=>({Name:c.name,Phone:c.phone,Sent:c.sent?'Yes':'No'})));
+            const blob=new Blob([csv],{type:'text/csv'});
+            const a=document.createElement('a');
+            a.href=URL.createObjectURL(blob);
+            a.download=`unicars_${new Date().toISOString().slice(0,10)}.csv`;
             a.click();
-            URL.revokeObjectURL(url);
         });
 
-        resetSentBtn.addEventListener('click', () => {
-            if (confirm('Reset sent status for all contacts?')) {
-                resetAllSent();
-            }
+        document.getElementById('resetSentBtn').addEventListener('click',()=>{
+            if(confirm('Reset sent status?')){customers.forEach(c=>c.sent=false);renderTable();saveStorage();}
         });
 
-        sendAllBtn.addEventListener('click', () => {
-            if (customers.length === 0) return;
-            openSendModal();
-        });
+        autoSendBtn.addEventListener('click', startAutoSend);
+        stopAutoBtn.addEventListener('click', stopAutoSend);
+        messageInput.addEventListener('input', saveStorage);
 
-        openChatBtn.addEventListener('click', () => {
-            openCurrentChat();
-        });
-
-        copyLinkBtn.addEventListener('click', copyCurrentLink);
-
-        markSentBtn.addEventListener('click', () => {
-            markSent(currentSendIndex);
-            // Optionally auto move next? But user may want to stay.
-        });
-
-        nextBtn.addEventListener('click', () => {
-            moveToNext();
-        });
-
-        stopBtn.addEventListener('click', closeSendModal);
-
-        // Modal background click close
-        sendModal.addEventListener('click', (e) => {
-            if (e.target === sendModal) closeSendModal();
-        });
-
-        // Auto-save message changes
-        messageInput.addEventListener('input', () => {
-            saveToStorage();
-        });
-
-        // Load on start
-        loadFromStorage();
-
-        // Additional feature: optional auto-send with delay (avoid popup block)
-        // Add a small button "Auto-send with delay" inside modal? 
-        // We'll add an extra button in modal: "Auto (3s)"
-        const autoBtn = document.createElement('button');
-        autoBtn.className = 'btn btn-outline btn-sm';
-        autoBtn.innerHTML = '<i class="fas fa-clock"></i> Auto (3s)';
-        autoBtn.style.marginTop = '12px';
-        autoBtn.addEventListener('click', () => {
-            if (!isSending) return;
-            if (autoTimer) clearTimeout(autoTimer);
-            delayMessage.textContent = 'Auto-opening next in 3 seconds...';
-            autoTimer = setTimeout(() => {
-                openCurrentChat();
-                // mark as sent automatically?
-                markSent(currentSendIndex);
-                moveToNext();
-                // Continue?
-                if (isSending && currentSendIndex < customers.length) {
-                    delayMessage.textContent = 'Auto-opening next in 3 seconds...';
-                    autoTimer = setTimeout(arguments.callee, 3000);
-                } else {
-                    delayMessage.textContent = '';
-                }
-            }, 3000);
-        });
-        document.querySelector('.modal-actions').appendChild(autoBtn);
-
-        // Expose to global for inline onclick
-        window.markSent = markSent;
+        loadStorage();
     })();
 </script>
 </body>
