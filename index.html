@@ -1,94 +1,145 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CRM UNICARS</title>
-
-<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-<script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
-
-<style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-:root {
---primary: #00A86B;
---bg: #F5F5F5;
---text: #000;
---border: #CCC;
-}
-
-body { font-family: Arial; background: var(--bg); padding: 20px; }
-.container { max-width: 900px; margin: auto; }
-
-h1 { color: var(--primary); margin-bottom: 10px; }
-
-.card {
-background: #fff;
-border: 1px solid var(--border);
-padding: 15px;
-margin-bottom: 15px;
-}
-
-button {
-padding: 8px 14px;
-border: none;
-cursor: pointer;
-background: var(--primary);
-color: white;
-margin-right: 5px;
-}
-
-input, textarea {
-width: 100%;
-padding: 10px;
-border: 1px solid var(--border);
-margin-top: 10px;
-}
-
-table {
-width: 100%;
-margin-top: 10px;
-border-collapse: collapse;
-}
-
-th, td {
-border-bottom: 1px solid var(--border);
-padding: 8px;
-text-align: left;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM UNICARS</title>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:system-ui,sans-serif;background:#f5f5f5;padding:20px}
+        .container{max-width:900px;margin:0 auto}
+        h1{color:#00A86B;text-align:center}
+        .card{background:#fff;border:1px solid #ccc;padding:20px;margin:16px 0;border-radius:4px}
+        .btn{background:#00A86B;color:#fff;border:none;padding:10px 20px;border-radius:4px;cursor:pointer;margin:4px}
+        .btn.secondary{background:#f5f5f5;color:#000;border:1px solid #ccc}
+        input[type="file"]{display:none}
+        textarea{width:100%;padding:12px;border:1px solid #ccc;border-radius:4px}
+        table{width:100%;border-collapse:collapse;font-size:14px}
+        th,td{padding:12px;text-align:left;border-bottom:1px solid #ccc}
+        th{background:#f5f5f5;position:sticky;top:0}
+        .table-container{max-height:400px;overflow:auto}
+        .badge{background:#00A86B;color:#fff;padding:2px 8px;border-radius:12px;font-size:12px}
+        .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center}
+        .modal-content{background:#fff;padding:24px;border-radius:4px;text-align:center}
+    </style>
 </head>
-
 <body>
+    <div class="container">
+        <h1>CRM UNICARS</h1>
+        
+        <div class="card">
+            <h3>1. Import File (.xlsx or .csv)</h3>
+            <input type="file" id="fileInput" accept=".xlsx,.csv">
+            <label for="fileInput" class="btn">Choose File</label>
+            <span id="fileName"></span>
+            <br><small>Required: Name, Phone columns</small>
+        </div>
 
-<div class="container">
-<h1>CRM UNICARS</h1>
+        <div class="card" id="msgSection" style="display:none">
+            <h3>2. Message</h3>
+            <textarea id="msg" rows="3" placeholder="Hi {name}, ..."></textarea>
+        </div>
 
-<div class="card">
-<input type="file" id="fileInput">
-</div>
+        <div class="card" id="actionSection" style="display:none">
+            <button class="btn secondary" onclick="exportCSV()">Export CSV</button>
+            <button class="btn" onclick="startSending()">Start Sending</button>
+            <span id="stats"></span>
+        </div>
 
-<div class="card" id="messageSection" style="display:none;">
-<textarea id="messageInput" placeholder="Message... use {name} {phone} {index}"></textarea>
-</div>
+        <div class="card" id="listSection" style="display:none">
+            <h3>Customers <span class="badge" id="count">0</span></h3>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>#</th><th>Name</th><th>Phone</th><th>Action</th></tr></thead>
+                    <tbody id="tbody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
-<div class="card" id="listSection" style="display:none;">
-<button onclick="startSending()">Start Sending</button>
-<table>
-<thead>
-<tr>
-<th>#</th>
-<th>Name</th>
-<th>Phone</th>
-<th>Actions</th>
-</tr>
-</thead>
-<tbody id="tableBody"></tbody>
-</table>
-</div>
+    <div class="modal" id="modal" onclick="if(event.target==this)closeModal()">
+        <div class="modal-content">
+            <h3>Sending <span id="cur">1</span> of <span id="tot">0</span></h3>
+            <p id="cust"></p>
+            <button class="btn" onclick="openWA()">Open WhatsApp</button>
+            <button class="btn secondary" onclick="next()">Next →</button>
+            <button class="btn secondary" onclick="closeModal()">Stop</button>
+        </div>
+    </div>
 
-</div>
+    <script>
+        let customers=[], idx=0;
+        
+        document.getElementById('fileInput').addEventListener('change',async(e)=>{
+            const f=e.target.files[0]; if(!f)return;
+            document.getElementById('fileName').textContent=f.name;
+            let data=f.name.endsWith('.csv')?await parseCSV(f):await parseExcel(f);
+            customers=process(data);
+            show();
+        });
 
-<script src="script.js"></script>
+        function parseCSV(f){return new Promise((r,j)=>Papa.parse(f,{header:true,skipEmptyLines:true,complete:x=>r(x.data),error:j}))}
+        
+        function parseExcel(f){return new Promise((r,j)=>{
+            const reader=new FileReader();
+            reader.onload=e=>{
+                try{const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});r(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]))}
+                catch(err){j(err)}
+            };
+            reader.readAsArrayBuffer(f);
+        })}
+
+        function process(raw){
+            const seen=new Set(), out=[];
+            let n=1;
+            for(const row of raw){
+                const name=find(row,['name','nome','customer']), phone=find(row,['phone','mobile','telefone','celular']);
+                if(!phone)continue;
+                const p=String(phone).replace(/\D/g,'');
+                if(!p||seen.has(p))continue;
+                seen.add(p);
+                out.push({name:name?String(name).trim():`Customer ${n++}`,phone:p});
+            }
+            return out;
+        }
+
+        function find(row,names){
+            const k=Object.keys(row);
+            for(const n of names){
+                const x=k.find(y=>y.toLowerCase().includes(n));
+                if(x&&row[x])return row[x];
+            }
+            return null;
+        }
+
+        function show(){
+            const tb=document.getElementById('tbody');
+            tb.innerHTML=customers.map((c,i)=>`<tr><td>${i+1}</td><td>${c.name}</td><td>${c.phone}</td><td><button class="btn" onclick="send(${i})">Send</button></td></tr>`).join('');
+            document.getElementById('count').textContent=customers.length;
+            document.getElementById('stats').textContent=`${customers.length} contacts`;
+            document.getElementById('msgSection').style.display='block';
+            document.getElementById('actionSection').style.display='block';
+            document.getElementById('listSection').style.display='block';
+        }
+
+        function send(i){
+            const c=customers[i], m=document.getElementById('msg').value.replace(/{name}/g,c.name)||`Hi ${c.name},`;
+            window.open(`https://wa.me/${c.phone}?text=${encodeURIComponent(m)}`,'_blank');
+        }
+
+        function exportCSV(){
+            if(!customers.length)return;
+            const blob=new Blob([Papa.unparse(customers.map(c=>({Name:c.name,Phone:c.phone})))],{type:'text/csv'});
+            const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='unicars.csv';a.click();
+        }
+
+        function startSending(){idx=0;document.getElementById('tot').textContent=customers.length;update();document.getElementById('modal').style.display='flex';}
+        function update(){document.getElementById('cur').textContent=idx+1;const c=customers[idx];document.getElementById('cust').textContent=`${c.name} (${c.phone})`;}
+        function openWA(){send(idx);}
+        function next(){idx++;if(idx>=customers.length){closeModal();alert('Done!');}else update();}
+        function closeModal(){document.getElementById('modal').style.display='none';}
+    </script>
 </body>
 </html>
