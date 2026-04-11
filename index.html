@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>CRM UNICARS · Mobile Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{--primary:#0a7c5c;--primary-hover:#066347;--bg:#f8fafc;--text:#1e293b;--border:#e2e8f0;--danger:#dc2626;--sent-bg:#fee2e2}
+        body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);padding:16px 12px;min-height:100vh}
+        .container{max-width:600px;margin:0 auto}
+        header{text-align:center;margin-bottom:20px}
+        header h1{font-size:1.8rem;color:var(--primary);display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+        .card{background:#fff;border-radius:24px;padding:20px 16px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,0.03);border:1px solid var(--border)}
+        .btn{padding:14px 18px;border-radius:60px;border:none;font-size:1rem;font-weight:500;display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#fff;border:1px solid var(--border);transition:0.15s;cursor:pointer;touch-action:manipulation}
+        .btn-primary{background:var(--primary);color:#fff;border:none}
+        .btn-primary:active{background:var(--primary-hover)}
+        .btn-danger{background:var(--danger);color:#fff;border:none}
+        .btn-block{width:100%}
+        .file-upload{display:flex;flex-direction:column;gap:12px}
+        input[type="file"]{display:none}
+        .file-name{background:#f1f5f9;padding:10px 16px;border-radius:40px;font-size:0.9rem;text-align:center}
+        textarea{width:100%;padding:14px;border:1.5px solid var(--border);border-radius:20px;font-size:1rem}
+        .action-bar{display:flex;flex-direction:column;gap:12px}
+        .stats-badge{background:#f1f5f9;padding:8px 16px;border-radius:40px;font-size:0.9rem;text-align:center}
+        .table-container{max-height:450px;overflow:auto;border-radius:20px;border:1px solid var(--border);-webkit-overflow-scrolling:touch}
+        table{width:100%;border-collapse:collapse;font-size:0.9rem}
+        th,td{padding:12px 8px;text-align:left;border-bottom:1px solid var(--border)}
+        th{background:#f8fafc;position:sticky;top:0;font-weight:600}
+        tr.sent-row{background:var(--sent-bg)!important}
+        .status-indicator{display:inline-block;width:12px;height:12px;border-radius:50%;background:#94a3b8}
+        .status-indicator.sent{background:var(--danger)}
+        .flex-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:space-between}
+        .sticky-next{position:sticky;bottom:10px;background:white;padding:10px;border-radius:60px;box-shadow:0 4px 12px rgba(0,0,0,0.08);border:1px solid var(--border);margin-top:12px;z-index:5}
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1><i class="fas fa-car"></i> UNICARS <i class="fab fa-whatsapp" style="color:#25D366;"></i></h1>
+        <p>Mobile Optimized · Auto Save · Resume</p>
+    </header>
+
+    <section class="card">
+        <h2 style="display:flex;gap:8px"><i class="fas fa-cloud-upload-alt"></i> Import</h2>
+        <div class="file-upload">
+            <input type="file" id="fileInput" accept=".xlsx,.csv" />
+            <label for="fileInput" class="btn btn-primary btn-block"><i class="fas fa-folder-open"></i> Choose Excel/CSV</label>
+            <span id="fileName" class="file-name">No file chosen</span>
+        </div>
+        <small>Columns: Name & Phone (with country code)</small>
+    </section>
+
+    <section class="card" id="message-section" style="display:none;">
+        <h2><i class="fas fa-pen"></i> Message</h2>
+        <textarea id="messageInput" rows="3" placeholder="Hello {name}, ..."></textarea>
+        <small>Use {name} to personalize</small>
+    </section>
+
+    <section class="card" id="actions-section" style="display:none;">
+        <div class="action-bar">
+            <div class="flex-row">
+                <span class="stats-badge" id="statsText">0 contacts</span>
+                <button id="exportBtn" class="btn"><i class="fas fa-download"></i> Export</button>
+                <button id="resetSentBtn" class="btn"><i class="fas fa-undo-alt"></i> Reset</button>
+            </div>
+            <button id="resumeBtn" class="btn btn-primary btn-block"><i class="fas fa-play"></i> ⚡ Resume Sending (Next Unsent)</button>
+            <button id="nextUnsentBtn" class="btn btn-primary btn-block" style="background:#2563eb;"><i class="fas fa-arrow-right"></i> → Open Next Unsent</button>
+        </div>
+    </section>
+
+    <section class="card" id="list-section" style="display:none;">
+        <h2><i class="fas fa-list"></i> Customers <span id="countBadge" class="badge" style="background:var(--primary);color:white;padding:4px 12px;border-radius:40px;margin-left:8px;">0</span></h2>
+        <div class="table-container">
+            <table id="customerTable">
+                <thead><tr><th>#</th><th>Name</th><th>Phone</th><th></th><th></th></tr></thead>
+                <tbody id="customerTableBody"></tbody>
+            </table>
+        </div>
+        <!-- شريط سفلي سريع للوصول للعميل التالي -->
+        <div class="sticky-next flex-row">
+            <span id="nextPreview">No pending</span>
+            <button id="quickNextBtn" class="btn btn-primary" style="padding:10px 20px;"><i class="fas fa-arrow-right"></i> Next</button>
+        </div>
+    </section>
+</div>
+
+<script>
+    (function(){
+        let customers = [];
+
+        // DOM elements
+        const fileInput = document.getElementById('fileInput');
+        const fileName = document.getElementById('fileName');
+        const messageSection = document.getElementById('message-section');
+        const actionsSection = document.getElementById('actions-section');
+        const listSection = document.getElementById('list-section');
+        const messageInput = document.getElementById('messageInput');
+        const customerTableBody = document.getElementById('customerTableBody');
+        const countBadge = document.getElementById('countBadge');
+        const statsText = document.getElementById('statsText');
+        const resumeBtn = document.getElementById('resumeBtn');
+        const nextUnsentBtn = document.getElementById('nextUnsentBtn');
+        const quickNextBtn = document.getElementById('quickNextBtn');
+        const nextPreview = document.getElementById('nextPreview');
+        const exportBtn = document.getElementById('exportBtn');
+        const resetBtn = document.getElementById('resetSentBtn');
+
+        // Utilities
+        function escapeHtml(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML;}
+        function normalizePhone(p){let c=String(p).replace(/[^\d+]/g,'');return c.startsWith('+')?'+'+c.replace(/\D/g,''):c.replace(/\D/g,'');}
+        function findColumn(row,names){const keys=Object.keys(row);for(let n of names){const e=keys.find(k=>k.trim().toLowerCase()===n.toLowerCase());if(e&&row[e])return row[e];}for(let n of names){const p=keys.find(k=>k.toLowerCase().includes(n.toLowerCase()));if(p&&row[p])return row[p];}return null;}
+
+        function processData(raw){
+            const seen=new Set(); const out=[]; let cnt=1;
+            for(let r of raw){
+                const name=findColumn(r,['name','nome','customer','client','full name','contact','اسم']);
+                const phone=findColumn(r,['phone','mobile','cell','telefone','celular','whatsapp','contact number','رقم']);
+                if(!phone) continue;
+                const clean=normalizePhone(phone);
+                if(!clean||clean.length<5||seen.has(clean)) continue;
+                seen.add(clean);
+                let finalName=name?String(name).trim():`Customer ${cnt++}`;
+                out.push({name:finalName,phone:clean,sent:false});
+            }
+            return out;
+        }
+
+        async function parseFile(file){
+            if(file.name.endsWith('.csv')){
+                return new Promise((res,rej)=>Papa.parse(file,{header:true,skipEmptyLines:true,complete:r=>res(r.data),error:rej}));
+            }else{
+                return new Promise((res,rej)=>{
+                    const reader=new FileReader();
+                    reader.onload=e=>{
+                        const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+                        res(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]));
+                    };
+                    reader.onerror=rej;
+                    reader.readAsArrayBuffer(file);
+                });
+            }
+        }
+
+        function renderTable(){
+            const frag=document.createDocumentFragment();
+            customers.forEach((c,i)=>{
+                const tr=document.createElement('tr');
+                if(c.sent) tr.classList.add('sent-row');
+                tr.innerHTML=`
+                    <td>${i+1}</td>
+                    <td>${escapeHtml(c.name)}</td>
+                    <td>${c.phone}</td>
+                    <td><span class="status-indicator ${c.sent?'sent':''}"></span></td>
+                    <td><button class="btn btn-primary btn-sm" style="padding:6px 10px;font-size:0.8rem;" onclick="sendSingle(${i})"><i class="fab fa-whatsapp"></i></button></td>
+                `;
+                frag.appendChild(tr);
+            });
+            customerTableBody.innerHTML='';
+            customerTableBody.appendChild(frag);
+            countBadge.textContent=customers.length;
+            updateStats();
+            updateNextPreview();
+        }
+
+        function updateStats(){
+            const sent=customers.filter(c=>c.sent).length;
+            statsText.textContent=`${customers.length} contacts (${sent} sent)`;
+        }
+
+        function updateNextPreview(){
+            const nextIdx = customers.findIndex(c=>!c.sent);
+            if(nextIdx === -1){
+                nextPreview.textContent = '✅ All sent!';
+                quickNextBtn.disabled = true;
+            }else{
+                const next = customers[nextIdx];
+                nextPreview.textContent = `Next: ${next.name} (${next.phone})`;
+                quickNextBtn.disabled = false;
+            }
+        }
+
+        function saveStorage(){
+            localStorage.setItem('unicars_mobile_v4',JSON.stringify(customers));
+            localStorage.setItem('unicars_mobile_msg_v4',messageInput.value);
+        }
+
+        function loadStorage(){
+            const saved=localStorage.getItem('unicars_mobile_v4');
+            const msg=localStorage.getItem('unicars_mobile_msg_v4');
+            if(saved){customers=JSON.parse(saved);if(msg)messageInput.value=msg;renderTable();showSections();}
+        }
+
+        function showSections(){
+            messageSection.style.display='block';
+            actionsSection.style.display='block';
+            listSection.style.display='block';
+        }
+
+        function buildMsg(cust){return (messageInput.value||'Hello {name},').replace(/\{name\}/g,cust.name);}
+        function getLink(phone,msg){return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;}
+
+        // Core: send single and mark sent
+        window.sendSingle = function(idx){
+            const c=customers[idx];
+            window.open(getLink(c.phone,buildMsg(c)),'_blank');
+            c.sent=true;
+            renderTable();
+            saveStorage();
+        };
+
+        // Find first unsent and send
+        function sendNextUnsent(){
+            const idx = customers.findIndex(c=>!c.sent);
+            if(idx === -1){ alert('🎉 All contacts have been sent!'); return; }
+            window.sendSingle(idx);
+        }
+
+        // Quick next (just opens without marking? No, sendSingle already marks)
+        function quickNext(){
+            sendNextUnsent();
+        }
+
+        // Reset all sent flags
+        function resetAllSent(){
+            if(confirm('Reset sent status for all contacts?')){
+                customers.forEach(c=>c.sent=false);
+                renderTable();
+                saveStorage();
+            }
+        }
+
+        // Export to CSV
+        function exportCSV(){
+            if(!customers.length) return;
+            const csv = Papa.unparse(customers.map(c=>({Name:c.name,Phone:c.phone,Sent:c.sent?'Yes':'No'})));
+            const blob = new Blob([csv],{type:'text/csv'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `unicars_${new Date().toISOString().slice(0,10)}.csv`;
+            a.click();
+        }
+
+        // Event Listeners
+        fileInput.addEventListener('change', async e=>{
+            const f=e.target.files[0]; if(!f)return;
+            fileName.textContent = f.name;
+            try{
+                const raw = await parseFile(f);
+                customers = processData(raw);
+                saveStorage();
+                renderTable();
+                showSections();
+            }catch(err){alert('Error: '+err.message);}
+        });
+
+        resumeBtn.addEventListener('click', sendNextUnsent);
+        nextUnsentBtn.addEventListener('click', sendNextUnsent);
+        quickNextBtn.addEventListener('click', quickNext);
+        exportBtn.addEventListener('click', exportCSV);
+        resetBtn.addEventListener('click', resetAllSent);
+        messageInput.addEventListener('input', saveStorage);
+
+        // Load on start
+        loadStorage();
+        // Initialize preview
+        if(customers.length) updateNextPreview();
+    })();
+</script>
+</body>
+</html>
